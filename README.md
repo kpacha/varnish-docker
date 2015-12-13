@@ -25,7 +25,7 @@ Create your backend app for the example service
 
 	$ curl -iXPOST -d '{
 	      "id": "example/http",
-	      "cmd": "python -m SimpleHTTPServer $PORT",
+	      "cmd": "python -m SimpleHTTPServer \$PORT",
 	      "mem": 50,
 	      "cpus": 0.1,
 	      "instances": 1,
@@ -65,7 +65,7 @@ Create the varnish app for the example service
 	        }
 	      },
 	      "env": {
-	        "VARNISH_BACKEND_ADDRESS": "$HOST",
+	        "VARNISH_BACKEND_ADDRESS": "\$HOST",
 	        "VARNISH_BACKEND_HOSTNAME": "http-example.marathon.mesos",
 	      }
 	    }' http://marathon.mesos:8080/v2/apps
