@@ -1,0 +1,117 @@
+vcl 4.0;
+import std;
+
+backend default {
+  .host = "__BACKEND_ADDRESS__";
+  .port = "__BACKEND_PORT__";
+  .probe = {
+        .request =
+            "HEAD / HTTP/1.1"
+            "Host: __BACKEND_HOSTNAME__"
+            "Connection: close"
+            "User-Agent: Varnish Health Probe";
+        .timeout = __PROBE_TIMEOUT__;
+        .interval = __PROBE_INTERVAL__;
+        .window = 5;
+        .threshold = 3;
+    }
+  .first_byte_timeout     = 300s;
+  .connect_timeout        = 5s;
+  .between_bytes_timeout  = 2s;
+}
+
+sub vcl_recv {
+  if (req.method != "GET" && req.method != "HEAD" && req.method != "OPTION") {
+    return (synth(405, "Request method not allowed."));
+  }
+
+  if (req.url ~ "\#") {
+    set req.url = regsub(req.url, "\#.*$", "");
+  }
+
+  if (req.url ~ "\?$") {
+    set req.url = regsub(req.url, "\?$", "");
+  }
+
+  if (req.http.Accept-Encoding) {
+    if (req.http.Accept-Encoding ~ "gzip") {
+      set req.http.Accept-Encoding = "gzip";
+    } elsif (req.http.Accept-Encoding ~ "deflate") {
+      set req.http.Accept-Encoding = "deflate";
+    } else {
+      unset req.http.Accept-Encoding;
+    }
+  }
+
+  if (req.http.Accept) {
+    if (req.http.Accept ~ "application/json") {
+      set req.http.Accept = "application/json";
+    } elsif (req.http.Accept ~ "application/xml") {
+      set req.http.Accept = "application/xml";
+    } elsif (req.http.Accept ~ "text/xml") {
+      set req.http.Accept = "text/xml";
+    } elsif (req.http.Accept ~ "text/plain") {
+      set req.http.Accept = "text/plain";
+    } elsif (req.http.Accept ~ "text/html") {
+      set req.http.Accept = "text/html";
+    } else {
+      unset req.http.Accept;
+    }
+  }
+
+  set req.http.x-host = req.http.host;
+  set req.http.x-url = req.url;
+  set req.http.host = "__BACKEND_HOSTNAME__";
+  unset req.http.Cookie;
+  unset req.http.Authorization;
+  unset req.http.Cache-Control;
+  return(hash);
+}
+
+sub vcl_hash {
+  hash_data(req.http.Accept);
+  hash_data(req.http.Accept-Encoding);
+}
+
+sub vcl_hit {
+  if (obj.ttl >= 0s || (!std.healthy(req.backend_hint) && (obj.ttl + obj.grace > 0s))) {
+      return (deliver);
+  }
+
+  return (fetch);
+}
+
+sub vcl_deliver {
+  if (obj.hits > 0) {
+    set resp.http.X-Cache = "HIT";
+  } else {
+    set resp.http.X-Cache = "MISS";
+  }
+  set resp.http.X-Cache-Hits = obj.hits;
+
+  unset resp.http.X-Powered-By;
+  unset resp.http.X-Varnish;
+  unset resp.http.Via;
+  unset resp.http.Vary;
+  unset resp.http.Age;
+  unset resp.http.Link;
+  unset resp.http.X-Generator;
+  unset resp.http.Set-Cookie;
+
+  return (deliver);
+}
+
+sub vcl_backend_response {
+  set beresp.grace = __GRACE_TIME__;
+  if (bereq.url ~ "\.(htm|html|css)(\?.*)?$") {
+    set beresp.ttl = 10d;
+  }
+  return (deliver);
+}
+
+sub vcl_backend_error {
+  set beresp.http.Content-Type = "text/plain; charset=utf-8";
+  set beresp.http.Retry-After = "5";
+  synthetic ("Internal server error");
+  return (deliver);
+}
