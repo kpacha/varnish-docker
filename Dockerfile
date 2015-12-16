@@ -1,9 +1,11 @@
-FROM alpine:latest
+FROM debian:jessie
 
-RUN apk update && apk add varnish && rm -rf /var/cache/apk/* && mkdir -p /etc/varnish
+RUN apt-get update \
+    && apt-get install -y varnish --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /etc/varnish
 
-ADD default.vcl.source /etc/varnish/default.vcl.source
-ADD start.sh /start.sh
+EXPOSE 80
 
 ENV VARNISH_BACKEND_ADDRESS 192.168.1.65
 ENV VARNISH_MEMORY 100M
@@ -13,6 +15,7 @@ ENV VARNISH_PROBE_INTERVAL 30s
 ENV VARNISH_PROBE_TIMEOUT 5s
 ENV VARNISH_GRACE_TIME 2m
 
-EXPOSE 80
+ADD default.vcl.source /etc/varnish/default.vcl.source
+ADD start.sh /start.sh
 
-ENTRYPOINT ["sh", "/start.sh"]
+CMD ["./start.sh"]

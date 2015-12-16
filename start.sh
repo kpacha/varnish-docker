@@ -1,9 +1,5 @@
 #!/bin/sh
 
-mkdir -p /var/lib/varnish/`hostname`
-touch /var/lib/varnish/`hostname`/_.vsm
-chown -R nobody /var/lib/varnish/`hostname`
-
 sed "s@__BACKEND_ADDRESS__@${VARNISH_BACKEND_ADDRESS}@" </etc/varnish/default.vcl.source >/etc/varnish/default.vcl
 sed -i "s@__BACKEND_PORT__@${VARNISH_BACKEND_PORT}@" /etc/varnish/default.vcl
 sed -i "s@__BACKEND_HOSTNAME__@${VARNISH_BACKEND_HOSTNAME}@" /etc/varnish/default.vcl
