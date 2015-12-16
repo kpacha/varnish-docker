@@ -47,6 +47,7 @@ Create the varnish app for the example service
 	      "mem": 300,
 	      "cpus": 0.5,
 	      "instances": 2,
+	      "cmd": "VARNISH_BACKEND_ADDRESS=\$HOST sh /start.sh",
 	      "constraints": [
 	        ["hostname", "UNIQUE"]
 	      ],
@@ -65,7 +66,6 @@ Create the varnish app for the example service
 	        }
 	      },
 	      "env": {
-	        "VARNISH_BACKEND_ADDRESS": "\$HOST",
 	        "VARNISH_BACKEND_HOSTNAME": "http-example.marathon.mesos",
 	      }
 	    }' http://marathon.mesos:8080/v2/apps
