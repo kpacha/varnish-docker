@@ -15,4 +15,4 @@ ENV VARNISH_GRACE_TIME 2m
 
 EXPOSE 80
 
-ENTRYPOINT ["sh", "/start.sh"]
+CMD ["/start.sh"]
