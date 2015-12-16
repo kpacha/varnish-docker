@@ -12,5 +12,5 @@ sed -i "s@__PROBE_TIMEOUT__@${VARNISH_PROBE_TIMEOUT}@" /etc/varnish/default.vcl
 sed -i "s@__GRACE_TIME__@${VARNISH_GRACE_TIME}@" /etc/varnish/default.vcl
 
 varnishd -s malloc,${VARNISH_MEMORY} -a :80 -f $VARNISH_VCL_FILE
-sleep 1
+sleep 5
 varnishlog
