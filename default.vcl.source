@@ -6,7 +6,7 @@ backend default {
   .port = "__BACKEND_PORT__";
   .probe = {
         .request =
-            "HEAD / HTTP/1.1"
+            "HEAD /health-check HTTP/1.1"
             "Host: __BACKEND_HOSTNAME__"
             "Connection: close"
             "User-Agent: Varnish Health Probe";
