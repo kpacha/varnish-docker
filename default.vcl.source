@@ -51,7 +51,7 @@ sub vcl_recv {
     } elsif (req.http.Accept ~ "xml") {
       set req.http.Accept = "application/xml; charset=UTF-8";
     } else {
-      set req.http.Accept = '*/*';
+      set req.http.Accept = "*/*";
     }
   }
 
