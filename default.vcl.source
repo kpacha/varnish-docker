@@ -45,13 +45,17 @@ sub vcl_recv {
 
   if (req.http.Accept) {
     if (req.http.Accept ~ "json") {
-      set req.http.Accept = "application/json; charset=UTF-8";
-    } elsif (req.http.Accept ~ "html") {
-      set req.http.Accept = "text/html; charset=UTF-8";
+      set req.http.X-Accept = "json";
+    } elsif (req.http.Accept ~ "htm.*xml") {
+      set req.http.X-Accept = "html, xml";
+    } elsif (req.http.Accept ~ "xml.*htm") {
+      set req.http.X-Accept = "xml, html";
+    } elsif (req.http.Accept ~ "htm") {
+      set req.http.X-Accept = "html";
     } elsif (req.http.Accept ~ "xml") {
-      set req.http.Accept = "application/xml; charset=UTF-8";
+      set req.http.X-Accept = "xml";
     } else {
-      set req.http.Accept = "*/*";
+      set req.http.X-Accept = "*";
     }
   }
 
@@ -65,7 +69,7 @@ sub vcl_recv {
 }
 
 sub vcl_hash {
-  hash_data(req.http.Accept);
+  hash_data(req.http.X-Accept);
   hash_data(req.http.Accept-Encoding);
 }
 
